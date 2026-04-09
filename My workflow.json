@@ -1,0 +1,250 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-content",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -304,
+        0
+      ],
+      "id": "51b1bc9a-a18c-4e1f-ab6e-0eeb282d94e5",
+      "name": "Webhook",
+      "webhookId": "98dbda1c-ee9f-4892-aff7-295ddc3dd113"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "AIzaSyBgZH8F4SLrvp2X9WmNH2zbVXJrVTbrZQM"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Generate structured learning content about {{$json.body.topic}}.\\n\\nReturn STRICT JSON only.\\n\\nFormat:\\n{\\n  \\\"quiz\\\": [\\n    {\\n      \\\"question\\\": \\\"\\\",\\n      \\\"options\\\": [\\\"\\\", \\\"\\\", \\\"\\\", \\\"\\\"],\\n      \\\"answer\\\": \\\"\\\"\\n    }\\n  ],\\n  \\\"linkedin_post\\\": \\\"\\\",\\n  \\\"twitter_thread\\\": [\\\"\\\", \\\"\\\", \\\"\\\", \\\"\\\"]\\n}\\n\\nReturn JSON only.\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "58f88631-6e29-4d17-b324-a50437b5879c",
+      "name": "Gemini Generate Content"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "63b905a4-aa47-4ecd-b60e-4d013012baa6",
+              "name": "quiz",
+              "value": "$json.raw_json.quiz",
+              "type": "object"
+            },
+            {
+              "id": "8a0c9c39-eab9-47cc-9df4-6e7c6a0fa78d",
+              "name": "linkedin_post",
+              "value": "$json.raw_json.linkedin_post",
+              "type": "string"
+            },
+            {
+              "id": "6365ff75-9c87-4385-a1ce-4e5323b2f7c1",
+              "name": "twitter_thread",
+              "value": "$json.raw_json.twitter_thread",
+              "type": "array"
+            },
+            {
+              "id": "8a221579-fe34-48e0-822e-c84445fba798",
+              "name": "topic ",
+              "value": "$node[\"Webhook\"].json[\"body\"][\"topic\"]",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        0
+      ],
+      "id": "0ad83df8-5eff-451b-b8cc-b96099a6a01f",
+      "name": "Extract Content Fields"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ai_content_pipeline",
+          "mode": "list",
+          "cachedResultName": "ai_content_pipeline"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "topic": "={{$json.topic}}",
+            "quiz": "={{ JSON.stringify($json.quiz) }}",
+            "linkedin_post": "={{$json.linkedin_post}}",
+            "twitter_thread": "={{ JSON.stringify($json.twitter_thread) }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "quiz",
+              "displayName": "quiz",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "linkedin_post",
+              "displayName": "linkedin_post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "twitter_thread",
+              "displayName": "twitter_thread",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        320,
+        0
+      ],
+      "id": "ed7bc1d6-182e-4700-b2b2-fbdfc38234fb",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "QTOs20TvaH8qlYaK",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Gemini Generate Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Generate Content": {
+      "main": [
+        [
+          {
+            "node": "Extract Content Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Content Fields": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d955dfde-22c0-49c4-82fd-d4433bb9f308",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ac72791ce423cff29d016063c9571b6a00712194f4fda956b1f171dc76d713f7"
+  },
+  "id": "11nGdV8oTimxXfSJ",
+  "tags": []
+}
